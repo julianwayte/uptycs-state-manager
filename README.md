@@ -20,12 +20,11 @@
 
 
 ## Overview
-This solution leverages AWS Systems Manager [AWS Automations](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-state.html), 
-[AWS Distributor](https://docs.aws.amazon.com/systems-manager/latest/userguide/distributor.html), and [AWS State Manager](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-state.html) to 
+This solution leverages AWS Systems Manager ([AWS Automations](https://docs.aws.amazon.
+com/systems-manager/latest/userguide/systems-manager-state.html), [AWS Distributor](https://docs.
+aws.amazon.com/systems-manager/latest/userguide/distributor.html), and [AWS State Manager]
+(https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-state.html)) to 
 automatically install the Uptycs Agent on EC2 Instances.
-
-Uptycs Now supports managed distributor packages in us-east-1 and us-east-2.   If you wish to 
-use Uptycs managed packages follow the guide here [Using Uptycs Distributor Packages](./supported-distributor-packages/README.md)
 
 
 
@@ -62,7 +61,6 @@ The following are required before implementing.
 - IAM (Attach roles to instances):
 - S3 (Create and Delete Bucket, Upload and Download Fils ):
 - State Manager (Manage Associations, Manage Packages):
-- Terraform:
 - Python version 3.6 or higher:
 - An AWS account with at least one region enabled for host management**
    (https://docs.aws.amazon.com/systems-manager/latest/userguide/setup-instance-permissions.html)
@@ -74,17 +72,10 @@ The following scripts are provided as part of this solution. Some scripts are in
 
 | Script name                  | Folder         | Description                                                                                                                                                                                                                                                                                                                  |
 |:-----------------------------|:---------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| create_package.py          | python         | This script handles the creation of the required .zip files and manifest.json file required to build your distributor package.  The script will download the relevant rpm and deb files from the Uptycs API, place the files in the relevant folder, create the zip files and manifest file and upload them to an S3 bucket. |
+| create_package.py          | python         | This script handles the creation of the required .zip files and manifest.json file required to build your distributor package.  The script will download the relevant rpm, deb, and msi files from the Uptycs API, place the files in the relevant folder, create the zip files and manifest file and upload them to an S3 bucket. |
 | Uptycs-State-Manager.yaml  | cloudformation | A cloudformation template that will setup a <br/>stackset that creates the Distributor Package and State Manager Association in one or more regions in a single account.                                                                                                                                                     |
 | Uptycs-Agent-Stackset.yaml | cloudformation | A cloudformation template that will setup a <br/>stackset that creates the Distributor Package and State Manager Association in one or more regions in a single account.                                                                                                                                                     |
-| uptycs-sm-package.tf       | terraform      | Creates the Distributor Package in a single region in an account.                                                                                                                                                                                                                                                            |
-| uptycs-sm-association.tf   | terraform      | Creates the State manager association in a region in an account.                                                                                                                                                                                                                                                             |
-| demo-ec2-instances.tf      | terraform      | Creates an Ubuntu and AL2 instance in a VPC with Tags to demonstrate how systems manager will install the Uptycs Agent.                                                                                                                                                                                                      |
 
-> Note: Today the terraform template setup a specific region in a single account. If you wish to 
-> use multiple regions and accounts, you will need to rerun the terraform in that region and 
-> account or use the cloudformation template .   We will soon release a multiaccount and 
-> multiregion version of the template.
 
 ## Implementing the solution
 
@@ -92,7 +83,7 @@ The following scripts are provided as part of this solution. Some scripts are in
 1. Create a local copy of this solution using the git clone command.
 
     ```shell
-    git clone https://github.com/uptycslabs/aws-state-manager
+    git clone https://github.com/jwayte-uptycs/uptycs-systems-manager/
     
     ```
     
@@ -101,9 +92,14 @@ The following scripts are provided as part of this solution. Some scripts are in
 | Directory name            | Description                                                                                            |
 |:--------------------------|:-------------------------------------------------------------------------------------------------------|
 | ssm-distributor-sources | Contains Folders representing each supported OS and processor architecture                             |
-| terraform               | Terraform files required to build the State Manager Association and Distributor package                |                                                                            |
 | cloudformation          | Cloudformation files required to build the State Manager Association and Distributor package |                                                                            |
 
+2. Install the requirements.
+     ```shell
+     pip install -r requirements.txt
+     ```
+     This will install any requirement python packages that are not yet present
+     
 ### Create your Uptycs API credential file
 1. Download the API Credentials file from the Uptycs console.  
 In your Uptycs Console, navigate to **Settings** -> **Users** -> **Create User** 
@@ -117,19 +113,16 @@ download the files from the Uptycs API and place them in the correct folder.
 
 ### Create your distributor package
 
-The `create_package.py` script will use information in the `agent_list.json` file to build zip 
+The `create_package.py` script will use information in the `uptycs-agent-mapping.json` file to build zip 
 files and a manifest.json file place them in a local s3-bucket folder and then upload them to an S3 bucket in your account. 
 More information about the python script [here](additional-documents/CREATE-PACKAGE.md)
 
-1. Navigate to the `ssm-distributor` folder and execute the `create_package.py` script.
-
-    > Note: It is possible to create a custom distributor package, more information is provided [here](.
-    > /additional-documents/CUSTOM-PACKAGES.md).
+1. Navigate to the `ssm-distributor-sources` folder. Login to your AWS account from the AWS cli (not required if you are using CloudShell).  
    
-2. Run the create_package.py script 
+2. Run the create-package.py script 
     ```shell
         cd ssm-distributor-sources
-        python3 ./create_package.py -c <my-credentials-file> -b <my-bucket> -r <aws-region>   
+        python3 ./create-package.py -c <my-credentials-file> -b <my-bucket> -r <aws-region>   
     ```
    
     >Note: 
@@ -160,72 +153,8 @@ More information about the python script [here](additional-documents/CREATE-PACK
 ## Create the Distributor Package and State Manager Association
 
 You may now choose to setup the Distributor Package and State Manager Association 
-[terraform](#terraform-option)  or [cloudformation](./additional-documents/CLOUDFORMATION.md)
 
 ### See the Cloudformation document [here](./additional-documents/CLOUDFORMATION.md)
-
-### Terraform Option
-
-The diagram below shows the resources created by this terraform project.
-The terraform project creates the State Manager Association and the Systems Manager Distributor 
-Package.
-
-<img src="/Users/jharris/PycharmProjects/uptycs-state-manager/images/terraform_setup.png" width="600"/>
-    
-1. Move to the terraform folder
-   
-    Examine the variables.tf and the setup.tfvars files and modify as required.   You will be 
-   required to enter the 
-       bucket name as a minimum.
-    
-    | Variable Name              | Default Value                                     | Type        | Description                                                                                              | 
-    |:---------------------------|:--------------------------------------------------|:------------|:---------------------------------------------------------------------------------------------------------|
-    | UptycsEc2TargetTagKeyName  | UPTYCS-AGENT                                      | string      | EC2 Tag Name                                                                                             | 
-    | UptycsEc2TargetTagKeyValue | TRUE                                              | string      | EC2 Tag Value                                                                                            |
-    | path_to_manifest           | "../s3-bucket/manifest.json"                      | string      | Path to manifest file                                                                                    |
-    | package_name               | "UptycsAgent"                                     | string      | Name of the Distributor Package                                                                          |
-    | s3_bucket_name             | ""                                                | string      | Name of the S3 bucket where the zip files and manifest files are staged                                  |
-    | Action                     | "Install"                                         | string      | Action that the AWS-ConfigureAWSPackage Document will take                                               |
-    | AdditionalArgs             | "{}"                                              | string      | Additional arg (At this time there are no additional parameters required)                                |
-    | aws_region                 | "us-east-1"                                       | string      | Region that your resources will be created in                                                            |
-    | create_instance            | false                                             | string      | Creates two test EC2 instances in a VPC correctly tagged so that state manager installs the Uptycs Agent |                                                                  |
-
-    A seperate tfvars file is also included that contains the most common variables that you may 
-    wish to modify
-
-    > Note: the folder also contains the file demo-ec2-instances.tf.txt.  This file will build a VPC 
-    > with Amazon Linux 2 and Ubuntu instances that are have been tagged so that state manager will 
-    > install the Uptycs agent automatically.  If you wish to observe this behaviour the set the 
-    > **create_instance** variable to **true** in the tfvars file.
-
-2. Review the .tfvars file and enter the required variables 
-
-
-3. Type the command to initialise terraform and download the required terraform providers
-     ```
-     terraform init
-     ```
-    This installs the required provider plugins, initializes the backend configuration, and installs 
-    any modules specified in the configuration. It also verifies that the configuration is valid and that all the dependencies are installed. 
-
-5. Type the command to create a plan of the resoureces you will create 
-    ```
-    terraform plan
-    ```
-    From reviewing the output you should see 3 resources to create
-    >Note If you are also creating the EC2 instances you will see 12 resources
-   
-6. Type the command to create the resources 
-    ```text
-    terraform apply -var-file=setup.tfvars --auto-approve
-    
-    ```
-
-    ![](images/tf-apply-out.png)
-    <p align="left">Figure 1: Terraform output</p>
-
-7. Proceed to the [verification](##Verfication) section
-
 
 ## Verification
 
