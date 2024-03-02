@@ -108,8 +108,8 @@ Select **Save**
 
     <img src='./images/uptycs-api-creds.png' width='600'>
 
-2. Place the file in the `ssm-distributor` folder.  The credentials are required by the script to 
-download the files from the Uptycs API and place them in the correct folder. 
+2. Place the file in the `ssm-distributor-sources` folder.  The credentials are required by the script to 
+download the agent packages via the Uptycs API and place them in the correct folder. 
 
 ### Create your distributor package
 
@@ -117,7 +117,7 @@ The `create_package.py` script will use information in the `uptycs-agent-mapping
 files and a manifest.json file place them in a local s3-bucket folder and then upload them to an S3 bucket in your account. 
 More information about the python script [here](additional-documents/CREATE-PACKAGE.md)
 
-1. Navigate to the `ssm-distributor-sources` folder. Login to your AWS account from the AWS cli (not required if you are using CloudShell).  
+1. Navigate to the `ssm-distributor-sources` folder. Login to your AWS account from the AWS cli (or use AWS CloudShell).  
    
 2. Run the create-package.py script 
     ```shell
