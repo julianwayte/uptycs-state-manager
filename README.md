@@ -122,7 +122,7 @@ More information about the python script [here](additional-documents/CREATE-PACK
 2. Run the create-package.py script 
     ```shell
         cd ssm-distributor-sources
-        python3 ./create-package.py -c <my-credentials-file> -b <my-bucket> -r <aws-region>   
+        python3 ./create-package.py -c <uptycs-apikey-file> -b <my-bucket> -r <aws-region>   
     ```
    
     >Note: 
