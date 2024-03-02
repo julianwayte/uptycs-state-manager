@@ -26,8 +26,6 @@ Metadata:
       - Label:
           default: "Uptycs SSM State Manager Association Paramters"
         Parameters:
-          - UptycsAgentTargetKey
-          - UptycsAgentTargetValue
           - UptycsScheduleRate
           - MaxConcurrency
           - MaxErrors
@@ -45,12 +43,8 @@ Metadata:
         default: "The name of the Uptycs distributor package that we will create"
       UptycsSsmPackageBucket:
         default: "The s3 bucket where the manifest and zip files are located"
-      UptycsAgentTargetKey:
-        default: "The Tag Key Name used to Target instances"
       UptycsScheduleRate:
         default: "The rate as which the association will run"
-      UptycsAgentTargetValue:
-        default: "The Tag Key Value used to Target instances"
       MaxConcurrency:
         default: "The maximum number of targets allowed to run the association at the same time"
       MaxErrors:
@@ -62,10 +56,10 @@ Metadata:
 Parameters:
   AdministrationRoleName:
     Type: String
-    Description: Existing Stackset Administration Role Name
+    Description: Leave Blank - Existing Stackset Administration Role Name
   ExecutionRoleName:
     Type: String
-    Description: Existing Stackset Execution Role Name
+    Description: Leave Blank - Existing Stackset Execution Role Name
   UptycsSsmPackageBucketFolder:
     Type: String
     Description: Uptycs folder in s3 bucket
@@ -76,14 +70,6 @@ Parameters:
     Default: UptycsAgent
   UptycsSsmPackageBucket:
     Description: SSM Distributor package that installs the Uptycs agent
-    Type: String
-  UptycsAgentTargetKey:
-    Description: Value of the Tag Key used to define the automation target
-    Default: "SENSOR_DEPLOY"
-    Type: String
-  UptycsAgentTargetValue:
-    Description: Value of the Tag Value used to define the automation target
-    Default: "TRUE"
     Type: String
   UptycsScheduleRate:
     Description: SSM association application cycle (minimum 30 minutes)
@@ -106,10 +92,11 @@ Parameters:
       - 'LOW'
       - 'MEDIUM'
       - 'UNSPECIFIED'
+    Default: 'MEDIUM'
   EnabledRegions:
     Type: CommaDelimitedList
     Description: "Enter a comma-delimited list of regions For example: \"us-east-1,eu-central-1,ap-south-1\"."
-
+    Default: "us-east-1, us-east-2, us-west-1, us-west-2, eu-west-1, eu-west-2"
 Conditions:
   CreateNewStackSetAdminRole: !Equals [!Ref AdministrationRoleName, ""]
   CreateNewStackSetExecRole: !Equals [!Ref ExecutionRoleName, ""]
